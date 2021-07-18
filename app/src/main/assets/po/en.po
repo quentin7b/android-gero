@@ -1,0 +1,29 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Adoria.MobilePOT-Creation-Date: 2021-06-23 9:50:00MIME-Version: 1.0Content-Type: text/plain; charset=UTF-8Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2021-07-16 12:52+0000\n"
+"Last-Translator: admin <pythonAdmin@adoria.com>\n"
+"Language: en_US\n"
+"Plural-Forms: nplurals=5; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : 3);\n"
+"X-Generator: Pontoon\n"
+
+msgid "BACK"
+msgstr "Previous"
+
+msgid "YOU TAPPED TIMES"
+msgstr "Counter: %d"
+
+msgid "QUANTITY"
+msgid_plural "QUANTITY"
+msgstr[0] "item"
+msgstr[1] "item"
+msgstr[2] "items"
+msgstr[3] "items"
+
+msgid "YOU HAVE QUANTITY"
+msgid_plural "YOU HAVE QUANTITY"
+msgstr[0] "You have no bag"
+msgstr[1] "You have one bag with %2$d items inside"
+msgstr[2] "You have a pair of bag with %2$d items inside"
+msgstr[3] "You have %1$d bags with %2$d items inside"
