@@ -262,6 +262,15 @@ class Gero private constructor(
                 throw Resources.NotFoundException("Cant find string with key $key in current files")
             }
         }
+
+        /**
+         * Returns the current locale of the Gero instance
+         * @return the current Locale
+         * @see Locale
+         */
+        fun getCurrentLocale(): Locale {
+            return get().currentLocale
+        }
     }
 }
 
