@@ -57,6 +57,21 @@ SomeCoroutineScope.launch {
 }
 ```
 
+If you need a fallback language, like english if `Gero` can't find the translation in the other files,
+you can specify it using the `fallbackLocale: Locale` argument.
+
+By default, this parameter is set to `Locale.US`, if you want, for example, German, use it this way
+
+```kotlin
+SomeCoroutineScope.launch {
+    Gero.setLocaleAsync(
+        baseContext,
+        Locale.FRANCE,
+        fallbackLocale = Locale.GERMANY
+    ).await()
+}
+```
+
 This method will do 2 things:
 
 1. Check all the files under the assets subfolder and register which file goes for which language
