@@ -245,16 +245,26 @@ class Gero private constructor(
                 CURRENT_GERO = Gero(locale, hasTextLoaded = false)
                 FALLBACK_GERO = Gero(fallbackLocale, hasTextLoaded = false)
                 CoroutineScope(Job()).launch(Dispatchers.IO) {
+                    var baseLocaleIsInitialized = true
                     try {
                         CURRENT_GERO!!.loadCurrentLanguageAsync(context).await()
+                    } catch (err: java.lang.Exception) {
+                        baseLocaleIsInitialized = false
+                    }
+
+                    try {
                         FALLBACK_GERO!!.loadCurrentLanguageAsync(context).await()
                     } catch (err: java.lang.Exception) {
-                        loadingDeferred.completeExceptionally(
-                            RuntimeException(
-                                "Cant initialize Gero",
-                                err
+                        if (!baseLocaleIsInitialized) {
+                            // Neither baseLocale or fallbackLocale could be initialized
+                            // Looks like a crash is needed
+                            loadingDeferred.completeExceptionally(
+                                RuntimeException(
+                                    "Cant initialize Gero",
+                                    err
+                                )
                             )
-                        )
+                        }
                     }
                 }
             } else {
