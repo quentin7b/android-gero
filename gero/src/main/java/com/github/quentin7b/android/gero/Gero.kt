@@ -11,7 +11,7 @@ import java.util.*
 import kotlin.collections.HashMap
 
 class Gero private constructor(
-    private var currentLocale: Locale,
+    private val currentLocale: Locale,
     private var hasTextLoaded: Boolean = false
 ) {
 
@@ -182,23 +182,44 @@ class Gero private constructor(
         return formula
     }
 
+    private fun singleForKey(key: String, vararg args: Any?): String? {
+        return localeTexts
+            .map { it.first }
+            .firstOrNull { it.hasTextForKey(key) }
+            ?.getText(key, *args)
+    }
+
+    private fun pluralForKey(
+        key: String,
+        quantity: Int,
+        vararg args: Any?
+    ): String? {
+        return localeTexts
+            .map { it.second }
+            .firstOrNull { it.hasTextForKey(key) }
+            ?.getText(key, quantity, *args)
+    }
+
     /**
      * Companion for quick access
      */
     companion object {
-        private var INSTANCE: Gero? = null
+        private var CURRENT_GERO: Gero? = null
+        private var FALLBACK_GERO: Gero? = null
 
         /**
          * Custom getter used to retrieve instance and check if init has been done
          */
         private fun get(): Gero {
-            if (INSTANCE == null || !INSTANCE!!.hasTextLoaded) {
+            if (CURRENT_GERO == null || !CURRENT_GERO!!.hasTextLoaded
+                || FALLBACK_GERO == null || !FALLBACK_GERO!!.hasTextLoaded
+            ) {
                 throw IllegalStateException(
                     "Gero has not been initialized, " +
                             "please load resource file with `setLocaleAsync` first"
                 )
             }
-            return INSTANCE!!
+            return CURRENT_GERO!!
         }
 
         /**
@@ -206,16 +227,40 @@ class Gero private constructor(
          * For example:
          * - `setLocaleAsync(baseContext, Locale.FRENCH)`
          * - `setLocaleAsync(baseContext, Locale.getDefault())`
+         *
+         * @param context an android Context
+         * @param locale the locale to use to fetch the translations
+         * @param fallbackLocale an optional fallback used if the string can't be found in the locale, by default, it looks in en_US or en
          */
-        fun setLocaleAsync(context: Context, locale: Locale): Deferred<Unit> {
-            return if (INSTANCE == null || INSTANCE?.currentLocale?.displayName != locale.displayName) {
-                INSTANCE = Gero(locale, hasTextLoaded = false)
-                INSTANCE!!.loadCurrentLanguageAsync(context)
+        fun setLocaleAsync(
+            context: Context,
+            locale: Locale,
+            fallbackLocale: Locale = Locale.US
+        ): Deferred<Unit> {
+            val loadingDeferred = CompletableDeferred<Unit>()
+            if (CURRENT_GERO == null ||
+                (locale.language != CURRENT_GERO?.currentLocale?.language
+                        || locale.country != CURRENT_GERO?.currentLocale?.country)
+            ) {
+                CURRENT_GERO = Gero(locale, hasTextLoaded = false)
+                FALLBACK_GERO = Gero(fallbackLocale, hasTextLoaded = false)
+                CoroutineScope(Job()).launch(Dispatchers.IO) {
+                    try {
+                        CURRENT_GERO!!.loadCurrentLanguageAsync(context).await()
+                        FALLBACK_GERO!!.loadCurrentLanguageAsync(context).await()
+                    } catch (err: java.lang.Exception) {
+                        loadingDeferred.completeExceptionally(
+                            RuntimeException(
+                                "Cant initialize Gero",
+                                err
+                            )
+                        )
+                    }
+                }
             } else {
-                val result = CompletableDeferred<Unit>()
-                result.complete(Unit)
-                result
+                loadingDeferred.complete(Unit)
             }
+            return loadingDeferred
         }
 
         /**
@@ -229,15 +274,19 @@ class Gero private constructor(
          * @throws Resources.NotFoundException if the string value is not found
          */
         fun getText(key: String, vararg args: Any?): String {
-            val file = get()
-                .localeTexts
-                .map { it.first }
-                .firstOrNull { it.hasTextForKey(key) }
-            if (file != null) {
-                return file.getText(key, *args)
-            } else {
-                throw Resources.NotFoundException("Cant find string with key $key in current files")
+            val translation = get().singleForKey(key, *args)
+            if (translation != null) {
+                return translation
             }
+
+            // Check for fallback
+            val fallbackTranslation = FALLBACK_GERO!!.singleForKey(key, *args)
+            if (fallbackTranslation != null) {
+                return fallbackTranslation
+            }
+
+            // No translation, no fallback, exit
+            throw Resources.NotFoundException("Cant find string with key $key in current files")
         }
 
         /**
@@ -252,15 +301,19 @@ class Gero private constructor(
          * @throws Resources.NotFoundException if the string value is not found
          */
         fun getQuantityText(key: String, quantity: Int, vararg args: Any?): String {
-            val file = get()
-                .localeTexts
-                .map { it.second }
-                .firstOrNull { it.hasTextForKey(key) }
-            if (file != null) {
-                return file.getText(key, quantity, *args)
-            } else {
-                throw Resources.NotFoundException("Cant find string with key $key in current files")
+            val translation = get().pluralForKey(key, quantity, *args)
+            if (translation != null) {
+                return translation
             }
+
+            // Check for fallback
+            val fallbackTranslation = FALLBACK_GERO!!.pluralForKey(key, quantity, *args)
+            if (fallbackTranslation != null) {
+                return fallbackTranslation
+            }
+
+            // No translation, no fallback, exit
+            throw Resources.NotFoundException("Cant find string with key $key in current files")
         }
 
         /**
