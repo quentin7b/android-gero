@@ -238,10 +238,12 @@ class Gero private constructor(
             fallbackLocale: Locale = Locale.US
         ): Deferred<Unit> {
             val loadingDeferred = CompletableDeferred<Unit>()
-            if (CURRENT_GERO == null ||
-                (locale.language != CURRENT_GERO?.currentLocale?.language
-                        || locale.country != CURRENT_GERO?.currentLocale?.country)
-            ) {
+            val shouldReload = CURRENT_GERO == null ||
+                    (locale.language != CURRENT_GERO?.currentLocale?.language
+                            || locale.country != CURRENT_GERO?.currentLocale?.country)
+            if (!shouldReload) {
+                loadingDeferred.complete(Unit)
+            } else {
                 CURRENT_GERO = Gero(locale, hasTextLoaded = false)
                 FALLBACK_GERO = Gero(fallbackLocale, hasTextLoaded = false)
                 CoroutineScope(Job()).launch(Dispatchers.IO) {
@@ -254,6 +256,7 @@ class Gero private constructor(
 
                     try {
                         FALLBACK_GERO!!.loadCurrentLanguageAsync(context).await()
+                        loadingDeferred.complete(Unit)
                     } catch (err: java.lang.Exception) {
                         if (!baseLocaleIsInitialized) {
                             // Neither baseLocale or fallbackLocale could be initialized
@@ -264,11 +267,11 @@ class Gero private constructor(
                                     err
                                 )
                             )
+                        } else {
+                            loadingDeferred.complete(Unit)
                         }
                     }
                 }
-            } else {
-                loadingDeferred.complete(Unit)
             }
             return loadingDeferred
         }
