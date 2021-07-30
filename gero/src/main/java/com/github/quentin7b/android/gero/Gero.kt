@@ -211,11 +211,12 @@ class Gero private constructor(
          * Custom getter used to retrieve instance and check if init has been done
          */
         private fun get(): Gero {
-            if (CURRENT_GERO == null || !CURRENT_GERO!!.hasTextLoaded
-                || FALLBACK_GERO == null || !FALLBACK_GERO!!.hasTextLoaded
+            if (
+                (CURRENT_GERO == null || !CURRENT_GERO!!.hasTextLoaded)
+                && (FALLBACK_GERO == null || !FALLBACK_GERO!!.hasTextLoaded)
             ) {
                 throw IllegalStateException(
-                    "Gero has not been initialized, " +
+                    "Gero has not been initialized, (locale: $CURRENT_GERO, fallback: $FALLBACK_GERO)" +
                             "please load resource file with `setLocaleAsync` first"
                 )
             }
