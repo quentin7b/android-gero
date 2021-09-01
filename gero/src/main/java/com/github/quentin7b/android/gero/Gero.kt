@@ -12,7 +12,8 @@ import kotlin.collections.HashMap
 
 class Gero private constructor(
     private val currentLocale: Locale,
-    private var hasTextLoaded: Boolean = false
+    private var hasTextLoaded: Boolean,
+    private var sendKeyIfNotFound: Boolean
 ) {
 
     /**
@@ -228,15 +229,19 @@ class Gero private constructor(
          * For example:
          * - `setLocaleAsync(baseContext, Locale.FRENCH)`
          * - `setLocaleAsync(baseContext, Locale.getDefault())`
+         * - `setLocaleAsync(baseContext, Locale.US, fallbackLocale = Locale.FRENCH)`
+         * - `setLocaleAsync(baseContext, Locale.US, fallbackLocale = Locale.FRENCH, sendKeyIfNotFound = true)`
          *
          * @param context an android Context
          * @param locale the locale to use to fetch the translations
          * @param fallbackLocale an optional fallback used if the string can't be found in the locale, by default, it looks in en_US or en
+         * @param sendKeyIfNotFound an optional boolean, if set to true, if Gero can't find the key, it returns the key, if false, it crashes. By default, it is false
          */
         fun setLocaleAsync(
             context: Context,
             locale: Locale,
-            fallbackLocale: Locale = Locale.US
+            fallbackLocale: Locale = Locale.US,
+            sendKeyIfNotFound: Boolean = false
         ): Deferred<Unit> {
             val loadingDeferred = CompletableDeferred<Unit>()
             val shouldReload = CURRENT_GERO == null ||
@@ -245,8 +250,13 @@ class Gero private constructor(
             if (!shouldReload) {
                 loadingDeferred.complete(Unit)
             } else {
-                CURRENT_GERO = Gero(locale, hasTextLoaded = false)
-                FALLBACK_GERO = Gero(fallbackLocale, hasTextLoaded = false)
+                CURRENT_GERO =
+                    Gero(locale, hasTextLoaded = false, sendKeyIfNotFound = sendKeyIfNotFound)
+                FALLBACK_GERO = Gero(
+                    fallbackLocale,
+                    hasTextLoaded = false,
+                    sendKeyIfNotFound = sendKeyIfNotFound
+                )
                 CoroutineScope(Job()).launch(Dispatchers.IO) {
                     var baseLocaleIsInitialized = true
                     try {
@@ -299,6 +309,10 @@ class Gero private constructor(
                 return fallbackTranslation
             }
 
+            if (get().sendKeyIfNotFound) {
+                return key
+            }
+
             // No translation, no fallback, exit
             throw Resources.NotFoundException("Cant find string with key $key in current files")
         }
@@ -326,6 +340,9 @@ class Gero private constructor(
                 return fallbackTranslation
             }
 
+            if (get().sendKeyIfNotFound) {
+                return key
+            }
             // No translation, no fallback, exit
             throw Resources.NotFoundException("Cant find string with key $key in current files")
         }
