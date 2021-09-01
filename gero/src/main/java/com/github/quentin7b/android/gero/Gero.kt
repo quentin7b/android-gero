@@ -211,6 +211,7 @@ class Gero private constructor(
         /**
          * Custom getter used to retrieve instance and check if init has been done
          */
+        @Synchronized
         private fun get(): Gero {
             if (
                 (CURRENT_GERO == null || !CURRENT_GERO!!.hasTextLoaded)
@@ -237,6 +238,7 @@ class Gero private constructor(
          * @param fallbackLocale an optional fallback used if the string can't be found in the locale, by default, it looks in en_US or en
          * @param sendKeyIfNotFound an optional boolean, if set to true, if Gero can't find the key, it returns the key, if false, it crashes. By default, it is false
          */
+        @Synchronized
         fun setLocaleAsync(
             context: Context,
             locale: Locale,
@@ -297,6 +299,7 @@ class Gero private constructor(
          *
          * @throws Resources.NotFoundException if the string value is not found
          */
+        @Synchronized
         fun getText(key: String, vararg args: Any?): String {
             val translation = get().singleForKey(key, *args)
             if (translation != null) {
@@ -328,6 +331,7 @@ class Gero private constructor(
          *
          * @throws Resources.NotFoundException if the string value is not found
          */
+        @Synchronized
         fun getQuantityText(key: String, quantity: Int, vararg args: Any?): String {
             val translation = get().pluralForKey(key, quantity, *args)
             if (translation != null) {
@@ -352,6 +356,7 @@ class Gero private constructor(
          * @return the current Locale
          * @see Locale
          */
+        @Synchronized
         fun getCurrentLocale(): Locale {
             return get().currentLocale
         }
