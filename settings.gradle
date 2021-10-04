@@ -1,3 +1,5 @@
 rootProject.name = "Gero"
-include ':app'
 include ':gero'
+if (!System.env.JITPACK)
+    include ':app'
+
