@@ -155,8 +155,21 @@ class Gero private constructor(
 
     private fun parsePluralsHeader(line: String): PluralsFormula {
         val formula = PluralsFormula()
-        val textFormulas = line
-            .substring(line.indexOf("(") + 1, line.indexOf(")"))
+        val lineWithoutNewLine = line.replace("\n", "")
+        val firstRealIndex =
+            when {
+                lineWithoutNewLine.contains("(") -> lineWithoutNewLine.indexOf("(") + 1
+                else -> lineWithoutNewLine.indexOf("plural=") + 7 // 7 as "plural="'s length is 7
+            }
+        // In this case  "\"Plural-Forms: nplurals=1; plural=0;\n" we don't have any ()
+        val lastRealIndex =
+            when {
+                lineWithoutNewLine.contains(")") -> lineWithoutNewLine.indexOf(")")
+                lineWithoutNewLine.endsWith(";") -> lineWithoutNewLine.length - 1
+                else -> lineWithoutNewLine.length
+            }
+        val textFormulas = lineWithoutNewLine
+            .substring(firstRealIndex, lastRealIndex)
             .split(':')
         // .map { it }
         if (textFormulas.size > 1) {
