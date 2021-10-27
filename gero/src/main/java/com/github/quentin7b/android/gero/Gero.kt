@@ -297,7 +297,7 @@ class Gero private constructor(
          */
         @Synchronized
         fun getText(key: String, vararg args: Any?): String {
-            if (CURRENT_GERO == null || !CURRENT_GERO!!.hasTextLoaded) {
+            if (CURRENT_GERO != null && CURRENT_GERO!!.hasTextLoaded) {
                 val translation = CURRENT_GERO!!.singleForKey(key, *args)
                 if (translation != null) {
                     return translation
@@ -305,7 +305,7 @@ class Gero private constructor(
             }
 
             // Check for fallback
-            if (FALLBACK_GERO == null || !FALLBACK_GERO!!.hasTextLoaded) {
+            if (FALLBACK_GERO != null && FALLBACK_GERO!!.hasTextLoaded) {
                 val translation = FALLBACK_GERO!!.singleForKey(key, *args)
                 if (translation != null) {
                     return translation
@@ -333,7 +333,7 @@ class Gero private constructor(
          */
         @Synchronized
         fun getQuantityText(key: String, quantity: Int, vararg args: Any?): String {
-            if (CURRENT_GERO == null || !CURRENT_GERO!!.hasTextLoaded) {
+            if (CURRENT_GERO != null && CURRENT_GERO!!.hasTextLoaded) {
                 val translation = CURRENT_GERO!!.pluralForKey(key, quantity, *args)
                 if (translation != null) {
                     return translation
@@ -341,7 +341,7 @@ class Gero private constructor(
             }
 
             // Check for fallback
-            if (FALLBACK_GERO == null || !FALLBACK_GERO!!.hasTextLoaded) {
+            if (FALLBACK_GERO != null && FALLBACK_GERO!!.hasTextLoaded) {
                 val translation = FALLBACK_GERO!!.pluralForKey(key, quantity, *args)
                 if (translation != null) {
                     return translation
@@ -362,10 +362,10 @@ class Gero private constructor(
          */
         @Synchronized
         fun getCurrentLocale(): Locale {
-            if (CURRENT_GERO == null || !CURRENT_GERO!!.hasTextLoaded) {
+            if (CURRENT_GERO != null && CURRENT_GERO!!.hasTextLoaded) {
                 return CURRENT_GERO!!.currentLocale;
             }
-            if (FALLBACK_GERO == null || !FALLBACK_GERO!!.hasTextLoaded) {
+            if (FALLBACK_GERO != null && FALLBACK_GERO!!.hasTextLoaded) {
                 return FALLBACK_GERO!!.currentLocale;
             }
             throw NullPointerException("Gero is null or has no loaded text ($CURRENT_GERO, ${CURRENT_GERO?.hasTextLoaded}, $FALLBACK_GERO, ${FALLBACK_GERO?.hasTextLoaded}")
