@@ -222,23 +222,6 @@ class Gero private constructor(
         private var FALLBACK_GERO: Gero? = null
 
         /**
-         * Custom getter used to retrieve instance and check if init has been done
-         */
-        @Synchronized
-        private fun get(): Gero {
-            if (
-                (CURRENT_GERO == null || !CURRENT_GERO!!.hasTextLoaded)
-                && (FALLBACK_GERO == null || !FALLBACK_GERO!!.hasTextLoaded)
-            ) {
-                throw IllegalStateException(
-                    "Gero has not been initialized, (locale: $CURRENT_GERO, fallback: $FALLBACK_GERO)" +
-                            "please load resource file with `setLocaleAsync` first"
-                )
-            }
-            return CURRENT_GERO!!
-        }
-
-        /**
          * First method call, initialize Gero with a specific locale !
          * For example:
          * - `setLocaleAsync(baseContext, Locale.FRENCH)`
@@ -314,18 +297,22 @@ class Gero private constructor(
          */
         @Synchronized
         fun getText(key: String, vararg args: Any?): String {
-            val translation = get().singleForKey(key, *args)
-            if (translation != null) {
-                return translation
+            if (CURRENT_GERO == null || !CURRENT_GERO!!.hasTextLoaded) {
+                val translation = CURRENT_GERO!!.singleForKey(key, *args)
+                if (translation != null) {
+                    return translation
+                }
             }
 
             // Check for fallback
-            val fallbackTranslation = FALLBACK_GERO!!.singleForKey(key, *args)
-            if (fallbackTranslation != null) {
-                return fallbackTranslation
+            if (FALLBACK_GERO == null || !FALLBACK_GERO!!.hasTextLoaded) {
+                val translation = FALLBACK_GERO!!.singleForKey(key, *args)
+                if (translation != null) {
+                    return translation
+                }
             }
 
-            if (get().sendKeyIfNotFound) {
+            if (CURRENT_GERO!!.sendKeyIfNotFound) {
                 return key
             }
 
@@ -346,18 +333,22 @@ class Gero private constructor(
          */
         @Synchronized
         fun getQuantityText(key: String, quantity: Int, vararg args: Any?): String {
-            val translation = get().pluralForKey(key, quantity, *args)
-            if (translation != null) {
-                return translation
+            if (CURRENT_GERO == null || !CURRENT_GERO!!.hasTextLoaded) {
+                val translation = CURRENT_GERO!!.pluralForKey(key, quantity, *args)
+                if (translation != null) {
+                    return translation
+                }
             }
 
             // Check for fallback
-            val fallbackTranslation = FALLBACK_GERO!!.pluralForKey(key, quantity, *args)
-            if (fallbackTranslation != null) {
-                return fallbackTranslation
+            if (FALLBACK_GERO == null || !FALLBACK_GERO!!.hasTextLoaded) {
+                val translation = FALLBACK_GERO!!.pluralForKey(key, quantity, *args)
+                if (translation != null) {
+                    return translation
+                }
             }
 
-            if (get().sendKeyIfNotFound) {
+            if (CURRENT_GERO!!.sendKeyIfNotFound) {
                 return key
             }
             // No translation, no fallback, exit
@@ -371,7 +362,13 @@ class Gero private constructor(
          */
         @Synchronized
         fun getCurrentLocale(): Locale {
-            return get().currentLocale
+            if (CURRENT_GERO == null || !CURRENT_GERO!!.hasTextLoaded) {
+                return CURRENT_GERO!!.currentLocale;
+            }
+            if (FALLBACK_GERO == null || !FALLBACK_GERO!!.hasTextLoaded) {
+                return FALLBACK_GERO!!.currentLocale;
+            }
+            throw NullPointerException("Gero is null or has no loaded text ($CURRENT_GERO, ${CURRENT_GERO?.hasTextLoaded}, $FALLBACK_GERO, ${FALLBACK_GERO?.hasTextLoaded}")
         }
     }
 }
