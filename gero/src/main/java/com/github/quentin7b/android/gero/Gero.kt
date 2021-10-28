@@ -376,6 +376,32 @@ class Gero private constructor(
                 }
             }
         }
+
+        /**
+         * Returns the original locale of the Gero instance
+         * @return the original Locale
+         * @see Locale
+         */
+        @Synchronized
+        fun getOriginalLocale(): Locale {
+            if (CURRENT_GERO != null)
+                return CURRENT_GERO!!.currentLocale
+            else
+                throw NullPointerException("Gero's original instance is null")
+        }
+
+        /**
+         * Returns the fallback locale of the Gero instance
+         * @return the fallback Locale
+         * @see Locale
+         */
+        @Synchronized
+        fun getFallbackLocale(): Locale {
+            if (FALLBACK_GERO != null)
+                return FALLBACK_GERO!!.currentLocale
+            else
+                throw NullPointerException("Gero's fallback instance is null")
+        }
     }
 }
 
