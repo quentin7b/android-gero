@@ -1,7 +1,6 @@
 package com.github.quentin7b.android.gero
 
 import android.content.Context
-import android.content.res.Resources
 import android.util.Log
 import kotlinx.coroutines.*
 import java.io.BufferedReader
@@ -239,7 +238,7 @@ class Gero private constructor(
             context: Context,
             locale: Locale,
             fallbackLocale: Locale = Locale.US,
-            sendKeyIfNotFound: Boolean = false
+            sendKeyIfNotFound: Boolean = false,
         ): Deferred<Unit> {
             val loadingDeferred = CompletableDeferred<Unit>()
             val shouldReload = CURRENT_GERO == null ||
@@ -292,8 +291,6 @@ class Gero private constructor(
          * @param args any arguments used to format the string (%d, %f, ...)
          * @return the formatted string value
          * @see SingleValues.getText
-         *
-         * @throws Resources.NotFoundException if the string value is not found
          */
         @Synchronized
         fun getText(key: String, vararg args: Any?): String {
@@ -312,12 +309,11 @@ class Gero private constructor(
                 }
             }
 
-            if (CURRENT_GERO!!.sendKeyIfNotFound) {
-                return key
+            return if (CURRENT_GERO?.sendKeyIfNotFound == true) {
+                key
+            } else {
+                ""
             }
-
-            // No translation, no fallback, exit
-            throw Resources.NotFoundException("Cant find string with key $key in current files")
         }
 
         /**
@@ -328,8 +324,6 @@ class Gero private constructor(
          * @param args any arguments used to format the string (%d, %f, ...)
          * @return the formatted string value
          * @see PluralsValues.getText
-         *
-         * @throws Resources.NotFoundException if the string value is not found
          */
         @Synchronized
         fun getQuantityText(key: String, quantity: Int, vararg args: Any?): String {
@@ -348,11 +342,11 @@ class Gero private constructor(
                 }
             }
 
-            if (CURRENT_GERO!!.sendKeyIfNotFound) {
-                return key
+            return if (CURRENT_GERO?.sendKeyIfNotFound == true) {
+                key
+            } else {
+                ""
             }
-            // No translation, no fallback, exit
-            throw Resources.NotFoundException("Cant find string with key $key in current files")
         }
 
         /**
@@ -362,13 +356,17 @@ class Gero private constructor(
          */
         @Synchronized
         fun getCurrentLocale(): Locale {
-            if (CURRENT_GERO != null && CURRENT_GERO!!.hasTextLoaded) {
-                return CURRENT_GERO!!.currentLocale;
+            return when {
+                CURRENT_GERO?.hasTextLoaded == true -> {
+                    CURRENT_GERO!!.currentLocale
+                }
+                FALLBACK_GERO?.hasTextLoaded != true -> {
+                    FALLBACK_GERO!!.currentLocale
+                }
+                else -> {
+                    throw NullPointerException("Gero is null or has no loaded text ($CURRENT_GERO, ${CURRENT_GERO?.hasTextLoaded}, $FALLBACK_GERO, ${FALLBACK_GERO?.hasTextLoaded}")
+                }
             }
-            if (FALLBACK_GERO != null && FALLBACK_GERO!!.hasTextLoaded) {
-                return FALLBACK_GERO!!.currentLocale;
-            }
-            throw NullPointerException("Gero is null or has no loaded text ($CURRENT_GERO, ${CURRENT_GERO?.hasTextLoaded}, $FALLBACK_GERO, ${FALLBACK_GERO?.hasTextLoaded}")
         }
     }
 }
