@@ -368,7 +368,7 @@ class Gero private constructor(
                 CURRENT_GERO?.hasTextLoaded == true -> {
                     CURRENT_GERO!!.currentLocale
                 }
-                FALLBACK_GERO?.hasTextLoaded != true -> {
+                FALLBACK_GERO?.hasTextLoaded == true -> {
                     FALLBACK_GERO!!.currentLocale
                 }
                 else -> {
