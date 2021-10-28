@@ -294,8 +294,10 @@ class Gero private constructor(
          */
         @Synchronized
         fun getText(key: String, vararg args: Any?): String {
+            var locale: Locale? = null
             if (CURRENT_GERO != null && CURRENT_GERO!!.hasTextLoaded) {
                 val translation = CURRENT_GERO!!.singleForKey(key, *args)
+                locale = CURRENT_GERO!!.currentLocale
                 if (translation != null) {
                     return translation
                 }
@@ -304,11 +306,13 @@ class Gero private constructor(
             // Check for fallback
             if (FALLBACK_GERO != null && FALLBACK_GERO!!.hasTextLoaded) {
                 val translation = FALLBACK_GERO!!.singleForKey(key, *args)
+                locale = CURRENT_GERO!!.currentLocale
                 if (translation != null) {
                     return translation
                 }
             }
 
+            Log.w("Gero", "The key [$key] is not found for locale [$locale]")
             return if (CURRENT_GERO?.sendKeyIfNotFound == true) {
                 key
             } else {
@@ -327,8 +331,10 @@ class Gero private constructor(
          */
         @Synchronized
         fun getQuantityText(key: String, quantity: Int, vararg args: Any?): String {
+            var locale: Locale? = null
             if (CURRENT_GERO != null && CURRENT_GERO!!.hasTextLoaded) {
                 val translation = CURRENT_GERO!!.pluralForKey(key, quantity, *args)
+                locale = CURRENT_GERO!!.currentLocale
                 if (translation != null) {
                     return translation
                 }
@@ -337,11 +343,13 @@ class Gero private constructor(
             // Check for fallback
             if (FALLBACK_GERO != null && FALLBACK_GERO!!.hasTextLoaded) {
                 val translation = FALLBACK_GERO!!.pluralForKey(key, quantity, *args)
+                locale = CURRENT_GERO!!.currentLocale
                 if (translation != null) {
                     return translation
                 }
             }
 
+            Log.w("Gero", "The key [$key] is not found for locale [$locale]")
             return if (CURRENT_GERO?.sendKeyIfNotFound == true) {
                 key
             } else {
