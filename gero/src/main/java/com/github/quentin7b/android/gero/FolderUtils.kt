@@ -44,12 +44,11 @@ private fun listFileUnderAssetFolder(context: Context, path: String): List<Strin
  * @see listFileUnderAssetFolder used to list the file candidates
  *
  * @param context an Android Context, used to access the assets
- * @param path the subfolder under `assets` where the po files are contained, by default its value is `po`
  * @return a deferred completed or exception failed
  */
 internal fun registerTranslationFilesAsync(
     context: Context,
-    path: String = "po"
+    path: String
 ): Deferred<HashMap<String, List<String>>> {
     val deferred = CompletableDeferred<HashMap<String, List<String>>>()
     val fileLocales = HashMap<String, MutableList<String>>()

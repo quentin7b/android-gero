@@ -36,11 +36,16 @@ class Gero private constructor(
      *
      * > Note that for a key contained in both fr and fr_FR, the one in fr_FR will be used
      */
-    private fun loadCurrentLanguageAsync(context: Context): Deferred<Unit> {
+    private fun loadCurrentLanguageAsync(context: Context, filesFolder: String?): Deferred<Unit> {
         val deferred = CompletableDeferred<Unit>()
         CoroutineScope(Job()).launch(Dispatchers.IO) {
             if (fileLocales.isEmpty()) {
-                fileLocales.putAll(registerTranslationFilesAsync(context).await())
+                fileLocales.putAll(
+                    registerTranslationFilesAsync(
+                        context,
+                        filesFolder ?: "po"
+                    ).await()
+                )
             }
 
             var reader: BufferedReader? = null
@@ -232,6 +237,7 @@ class Gero private constructor(
          * @param locale the locale to use to fetch the translations
          * @param fallbackLocale an optional fallback used if the string can't be found in the locale, by default, it looks in en_US or en
          * @param sendKeyIfNotFound an optional boolean, if set to true, if Gero can't find the key, it returns the key, if false, it crashes. By default, it is false
+         * @param filesFolder an optional path to the po files that Gero must load. By default, it looks under a `po` folder (under `assets`)
          */
         @Synchronized
         fun setLocaleAsync(
@@ -239,6 +245,7 @@ class Gero private constructor(
             locale: Locale,
             fallbackLocale: Locale = Locale.US,
             sendKeyIfNotFound: Boolean = false,
+            filesFolder: String? = null,
         ): Deferred<Unit> {
             val loadingDeferred = CompletableDeferred<Unit>()
             val shouldReload = CURRENT_GERO == null ||
@@ -257,13 +264,13 @@ class Gero private constructor(
                 CoroutineScope(Job()).launch(Dispatchers.IO) {
                     var baseLocaleIsInitialized = true
                     try {
-                        CURRENT_GERO!!.loadCurrentLanguageAsync(context).await()
+                        CURRENT_GERO!!.loadCurrentLanguageAsync(context, filesFolder).await()
                     } catch (err: java.lang.Exception) {
                         baseLocaleIsInitialized = false
                     }
 
                     try {
-                        FALLBACK_GERO!!.loadCurrentLanguageAsync(context).await()
+                        FALLBACK_GERO!!.loadCurrentLanguageAsync(context, filesFolder).await()
                         loadingDeferred.complete(Unit)
                     } catch (err: java.lang.Exception) {
                         if (!baseLocaleIsInitialized) {
