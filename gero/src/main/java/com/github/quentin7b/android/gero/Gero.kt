@@ -71,12 +71,12 @@ class Gero private constructor(
                     throw FileNotFoundException("Cant find a po file for locale $currentLocale")
                 }
 
-                fileLocales[languageTag]?.let {
+                // Add the complete tags before the language tag so that if there is the same key
+                // The complete tag value will override the basic one (because hit first)
+                fileLocales[completeTag]?.let {
                     fileList.addAll(it)
                 }
-                // Add the complete tags after the language tag so that if there is the same key
-                // The complete tag value will override the basic one
-                fileLocales[completeTag]?.let {
+                fileLocales[languageTag]?.let {
                     fileList.addAll(it)
                 }
 
