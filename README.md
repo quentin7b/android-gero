@@ -22,7 +22,7 @@ And this to your module `build.gradle`
 
 ```groovy
 dependencies {
-    compile 'com.github.quentin7b:android-gero:1.0.0'
+    compile 'com.github.quentin7b:android-gero:1.3.2'
 }
 ```
 
